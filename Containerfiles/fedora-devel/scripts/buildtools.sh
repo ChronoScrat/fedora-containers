@@ -2,5 +2,6 @@
 
 dnf install -y --setopt install_weak_deps=False \
     make \
+    cmake \
     mason \
     just

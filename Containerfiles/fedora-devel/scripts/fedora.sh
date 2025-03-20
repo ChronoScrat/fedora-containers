@@ -2,4 +2,5 @@
 
 dnf install -y \
     fedpkg \
-    copr-rpmbuild
+    copr-rpmbuild \
+    copr-cli
