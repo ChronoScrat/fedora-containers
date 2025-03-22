@@ -69,8 +69,8 @@ jobs:
   build_containers:
     name: Build & Publish Container images
     runs-on: ubuntu-24.04
-    needs: changed_containers
-    if: always() && needs.changed_containers.outputs.has-changed-containerfiles == 'true'
+    needs: [changed_containers]
+    if: ${{ needs.changed_containers.outputs.has-changed-containerfiles == 'true' }}
     permissions:
       contents: read
       packages: write
