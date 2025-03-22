@@ -9,7 +9,7 @@ ARG FEDORA_VERSION
 FROM ${FEDORA_REGISTRY}/${FEDORA_IMAGE}:${FEDORA_VERSION}
 
 # Add installation scripts
-ADD --chmod=755 devel/scripts /scripts
+ADD --chmod=755 Containerfiles/fedora-devel/scripts /scripts
 
 # Install Basic tooling
 RUN scripts/tooling.sh

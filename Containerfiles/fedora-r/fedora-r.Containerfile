@@ -34,10 +34,7 @@ ENV CRAN="https://p3m.dev/cran/__linux__/${RHEL_LIKE}/latest"
 RUN echo "options(repos = c(CRAN = '${CRAN}'), download.file.method = 'libcurl')" >> "${R_HOME}/etc/Rprofile.site"
 
 # Set the User-Agent for R
-RUN cat <<EOF >>"${R_HOME}/etc/Rprofile.site"
-# https://docs.rstudio.com/rspm/admin/serving-binaries/#binaries-r-configuration-linux
-options(HTTPUserAgent = sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version["platform"], R.version["arch"], R.version["os"])))
-EOF
+RUN echo "options(HTTPUserAgent = sprintf('R/%s R (%s)', getRversion(), paste(getRversion(), R.version['platform'], R.version['arch'], R.version['os'])))" >> "${R_HOME}/etc/Rprofile.site" 
 
 # Add site library
 RUN echo "R_LIBS=\${R_LIBS-'${R_HOME}/library'}" >> "${R_HOME}/etc/Renviron.site"
