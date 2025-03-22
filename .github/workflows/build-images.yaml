@@ -54,6 +54,7 @@ jobs:
             changed_files_list=$(find . -type f -name '*.Containerfile' | xargs)
           else
             exit 1
+          fi
           CHANGED_CONTAINERFILES="{\"containerfiles\":[]}"
           for file in ${changed_files_list}; do
             if [[ ${file##*.} == "Containerfile" ]]; then # Add option when the file itself is named 'Containerfile'
