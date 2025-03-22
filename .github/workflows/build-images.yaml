@@ -69,7 +69,7 @@ jobs:
     name: Build & Publish Container images
     runs-on: ubuntu-24.04
     needs: [changed_containers]
-    if: ${{ needs.changed_containers.outputs.has-changed-containerfiles != '[]' }}
+    if: ${{ needs.changed_containers.outputs.changed-containerfiles != '[]' }}
     permissions:
       contents: read
       packages: write
