@@ -47,9 +47,14 @@ jobs:
       - name: Get changed Containerfiles
         id: changed-containerfiles
         run: |
-          if [[ ${{ github.event_name == 'pull_request' }} ]] || [[ ${{ github.event_name == 'push' }} ]]; then
+          prq=${{ github.event_name == 'pull_request' }}
+          psh=${{ github.event_name == 'push' }}
+          sch=${{ github.event_name == 'schedule' }}
+          wkf=${{ github.event_name == 'workflow_dispatch' }}
+
+          if ($prq || $psh); then
             changed_files_list="$(git diff --name-only ${{ github.event.before }} HEAD | xargs)"
-          elif [[ ${{ github.event_name == 'schedule' }} ]] || [[ ${{ github.event_name == 'workflow_dispatch' }} ]]; then
+          elif ($sch || $wkf); then
             changed_files_list=$(find . -type f -name '*.Containerfile' | xargs)
           else
             exit 1
@@ -72,7 +77,7 @@ jobs:
     name: Build & Publish Container images
     runs-on: ubuntu-24.04
     needs: [changed_containers]
-    if: ${{ needs.changed_containers.outputs.changed-containerfiles == '[]' }}
+    if: ${{ needs.changed_containers.outputs.changed-containerfiles != '[]' }}
     permissions:
       contents: read
       packages: write
