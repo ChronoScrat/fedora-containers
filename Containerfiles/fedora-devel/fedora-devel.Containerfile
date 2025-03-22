@@ -2,9 +2,9 @@
 # This image builds upon the minimal Fedora image to include development tools such
 # as RPKG, Mock, make, meson, just etc.
 
-ARG FEDORA_REGISTRY=registry.fedoraproject.org
-ARG FEDORA_IMAGE=fedora-minimal
-ARG FEDORA_VERSION=41
+ARG FEDORA_REGISTRY
+ARG FEDORA_IMAGE
+ARG FEDORA_VERSION
 
 FROM ${FEDORA_REGISTRY}/${FEDORA_IMAGE}:${FEDORA_VERSION}
 

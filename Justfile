@@ -1,5 +1,7 @@
 
 export current_fedora := env("CURRENT_FEDORA", "41")
+export fedora_registry := env("FEDORA_REGISTRY", "registry.fedoraproject.org")
+export fedora_image := env("FEDORA_IMAGE", "fedora-minimal")
 
 build $CONTAINERFILE $TAG:
   #!/usr/bin/bash
@@ -14,7 +16,10 @@ build $CONTAINERFILE $TAG:
 
   podman build . \
     -f ${CONTAINERFILE} \
-    -t ${image_name}:${TAG}
+    --build-arg FEDORA_REGISTRY=${fedora_registry} \
+    --build-arg FEDORA_IMAGE=${fedora_image} \
+    --build-arg FEDORA_VERSION=${TAG} \
+    -t ${image_name}:${TAG} \
 
 
 tag $CONTAINERFILE $TAG $REGISTRY:
