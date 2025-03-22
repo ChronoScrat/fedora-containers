@@ -63,6 +63,9 @@ jobs:
             fi
           done
 
+          echo "The following files have been changed"
+          echo "changed-containerfiles=$(echo ${CHANGED_CONTAINERFILES} | jq -c '.containerfiles')"
+
           echo "changed-containerfiles=$(echo ${CHANGED_CONTAINERFILES} | jq -c '.containerfiles')" >> ${GITHUB_OUTPUT}
   
   build_containers:
