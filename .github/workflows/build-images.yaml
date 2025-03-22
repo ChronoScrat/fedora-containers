@@ -1,0 +1,122 @@
+# Build Images
+
+# This workflow will build all images named with a `.Containerfile` extension. When on
+# scheduled execution, it will rebuild all images. This ensures that all packages are always
+# up to date with upstream Fedora. When executing on pushes or pull requests, it only builds 
+# the changed Containerfiles.
+
+# For now, it only builds for the current Fedora version on amd64, but it can easily be expanded
+# to include more versions (incl. rawhide) and arm64 versions as well;
+
+# TODO Add cache to speed up image builds
+# TODO Add plataform option to make building arm64 images easier
+
+name: Build Container Images
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - Containerfiles/*
+  push:
+    branches:
+      - main
+    paths:
+      - Containerfiles/*
+
+env:
+  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
+  CURRENT_FEDORA: 41
+  FEDORA_REGISTRY: "registry.fedoraproject.org"
+  FEDORA_IMAGE: "fedora-minimal"
+
+jobs:
+  changed_containers:
+    name: Get changed Containerfiles
+    runs-on: ubuntu-24.04
+    outputs:
+        has-changed-containerfiles: ${{ steps.changed-containerfiles.outputs.has-changed-containerfiles }}
+        changed-containerfiles: ${{ steps.changed-containerfiles.outputs.changed-containerfiles }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2
+
+      - name: Get changed Containerfiles
+        id: changed-containerfiles
+        run: |
+          if [[ ${{ github.event_name == 'pull_request' }} || ${{ github.event_name == 'push' }} ]]; then
+            changed_files_list="$(git diff --name-only ${{ github.event.before }} HEAD | xargs)"
+          elif [[ ${{ github.event_name == 'schedule' }} ]]; then
+            changed_files_list=$(find . -type f -name '*.Containerfile' | xargs)
+          else
+            exit 1
+          CHANGED_CONTAINERFILES="{\"containerfiles\":[]}"
+          for file in ${changed_files_list}; do
+            if [[ ${file##*.} == "Containerfile" ]]; then # Add option when the file itself is named 'Containerfile'
+              containerfile_path=$(realpath ${file})
+              CHANGED_CONTAINERFILES=$(echo ${CHANGED_CONTAINERFILES} | jq -c ".containerfiles += [\"${containerfile_path}\"]")
+              echo "has-changed-containerfiles=true" >> ${GITHUB_OUTPUT}
+            fi
+          done
+
+          echo "changed-containerfiles=$(echo ${CHANGED_CONTAINERFILES} | jq -c '.containerfiles')" >> ${GITHUB_OUTPUT}
+  
+  build_containers:
+    name: Build & Publish Container images
+    runs-on: ubuntu-24.04
+    needs: changed_containers
+    if: needs.changed_containers.outputs.has-changed-containerfiles == 'true'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora_versions: ['41']
+        containerfiles: ${{ fromJson(needs.changed_containers.outputs.changed-containerfiles) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2
+
+      - name: Build ${{ matrix.containerfiles }}
+        id: build-images
+        env:
+          FEDORA_REGISTRY: ${{ env.FEDORA_REGISTRY }}
+          FEDORA_IMAGE: ${{ env.FEDORA_IMAGE }}
+        run: |
+          set -x
+
+          FEDORA_REGISTRY=${{ env.FEDORA_REGISTRY }}
+          FEDORA_IMAGE=${{ env.FEDORA_IMAGE }}
+
+          just=$(which just)
+
+          ${just} build ${{ matrix.containerfiles }} ${{ matrix.fedora_versions }}
+      
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        run:
+          echo ${{ secrets.GITHUB_TOKEN }} | podman login -u ${{ github.actor }} --password-stdin ghcr.io
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login -u ${{ github.actor }} --password-stdin ghcr.io
+
+      - name: Push to GHCR - ${{ matrix.containerfiles }}
+        if: github.event_name != 'pull_request'
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          CURRENT_FEDORA: ${{ env.CURRENT_FEDORA }}
+        run: |
+          set -x
+
+          CURRENT_FEDORA=${{ env.CURRENT_FEDORA }}
+
+          just=$(which just)
+
+          ${just} tag ${{ matrix.containerfiles }} ${{ matrix.fedora_versions }} ${{ env.IMAGE_REGISTRY }}
+          
+          for i in {1..3}; do
+            ${just} push ${{ env.IMAGE_REGISTRY }} ${{ matrix.containerfiles }} ${{matrix.fedora_versions}} && break | sleep $((5 * i))
+          done
