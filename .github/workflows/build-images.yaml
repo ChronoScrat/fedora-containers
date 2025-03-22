@@ -25,6 +25,7 @@ on:
       - main
     paths:
       - Containerfiles/*
+  workflow_dispatch:
 
 env:
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
@@ -49,7 +50,7 @@ jobs:
         run: |
           if [[ ${{ github.event_name == 'pull_request' }} || ${{ github.event_name == 'push' }} ]]; then
             changed_files_list="$(git diff --name-only ${{ github.event.before }} HEAD | xargs)"
-          elif [[ ${{ github.event_name == 'schedule' }} ]]; then
+          elif [[ ${{ github.event_name == 'schedule' }} || ${{ github.event_name == 'workflow_dispatch' }} ]]; then
             changed_files_list=$(find . -type f -name '*.Containerfile' | xargs)
           else
             exit 1
