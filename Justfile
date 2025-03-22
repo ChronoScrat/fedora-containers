@@ -27,11 +27,14 @@ tag $CONTAINERFILE $TAG $REGISTRY:
   set -x
   image_name=$(basename ${CONTAINERFILE})
   image_name="${image_name%.*}"
+  
+  # This is a bashism
+  registry=${REGISTRY,,}
 
   if [[ ${TAG} -eq ${current_fedora} ]]; then
-    podman tag localhost/${image_name}:${TAG} ${REGISTRY}/${image_name}:${TAG} ${REGISTRY}/${image_name}:latest
+    podman tag localhost/${image_name}:${TAG} ${registry}/${image_name}:${TAG} ${registry}/${image_name}:latest
   else
-    podman tag localhost/${image_name}:${TAG} ${REGISTRY}/${image_name}:${TAG}
+    podman tag localhost/${image_name}:${TAG} ${registry}/${image_name}:${TAG}
   fi
 
 push $CONTAINERFILE $TAG $REGISTRY:
@@ -40,8 +43,11 @@ push $CONTAINERFILE $TAG $REGISTRY:
   image_name=$(basename ${CONTAINERFILE})
   image_name="${image_name%.*}"
 
-  podman push ${REGISTRY}/${image_name}:${TAG}
+  # This is a bashism
+  registry=${REGISTRY,,}
+
+  podman push ${registry}/${image_name}:${TAG}
 
   if [[ ${TAG} -eq ${current_fedora} ]]; then
-    podman push ${REGISTRY}/${image_name}:latest
+    podman push ${registry}/${image_name}:latest
   fi
