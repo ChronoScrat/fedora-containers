@@ -1,6 +1,12 @@
 # Fedora ACT
 # This image is a wrapper around the `act` utility for running Github
-# Actions locally. It is meant to be run as a priviledged container.
+# Actions locally. It is meant to be run as a privileged container.
+#
+# The official implementation of `act` relies on Docker, and so we provide
+# it in this image. Ideally, however, the user may be able to use it with
+# Podman.
+#
+# TODO add option to run as regular user
 
 ARG FEDORA_REGISTRY
 ARG FEDORA_IMAGE
@@ -8,24 +14,20 @@ ARG FEDORA_VERSION
 
 FROM ${FEDORA_REGISTRY}/${FEDORA_IMAGE}:${FEDORA_VERSION}
 
-RUN dnf install -y \
-    podman \
-    dnf5-plugins \
-    systemd
+# Install dnf plugins (required for COPR) and Podman
+RUN dnf install -y --setopt install_weak_deps=False \
+  dnf5-plugins \
+  podman
 
-#RUN dnf copr enable chronoscrat/act-cli \
-#    && dnf install --refresh -y --setopt install_weak_deps=False act
+# Install `act-cli`
+RUN dnf copr enable -y chronoscrat/act-cli
+RUN dnf install --refresh -y --setopt install_weak_deps=False act-cli
 
-RUN dnf install -y https://download.copr.fedorainfracloud.org/results/chronoscrat/act-cli/fedora-41-x86_64/08805243-act-cli/act-v0.2.75-1.fc41.x86_64.rpm
-
-RUN systemctl enable podman.service
-
-#USER 1000
-
-ENV DOCKER_HOST="unix:///var/run/podman/podman.sock"
+# Clean
+RUN dnf clean all -y
+RUN dnf autoremove -y
+RUN rm -fr /var/cache/dnf/*
 
 WORKDIR /pwd
-
-RUN /usr/bin/podman system service
 
 ENTRYPOINT ["/usr/bin/act-cli"]
