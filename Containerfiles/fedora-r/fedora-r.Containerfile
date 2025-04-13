@@ -22,7 +22,10 @@ RUN dnf install -y --setopt install_weak_deps=False \
   sudo \
   curl \
   curl-devel \
-  just
+  just \
+  tar \
+  zip \
+  tree
 
 # Install R
 RUN dnf install -y --setopt install_weak_deps=False \
