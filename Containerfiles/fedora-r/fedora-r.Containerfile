@@ -21,7 +21,8 @@ RUN dnf install -y --setopt install_weak_deps=False \
   git-lfs \
   sudo \
   curl \
-  curl-devel
+  curl-devel \
+  just
 
 # Install R
 RUN dnf install -y --setopt install_weak_deps=False \
