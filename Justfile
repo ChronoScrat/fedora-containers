@@ -1,5 +1,5 @@
 
-export current_fedora := env("CURRENT_FEDORA", "41")
+export current_fedora := env("CURRENT_FEDORA", "42")
 export fedora_registry := env("FEDORA_REGISTRY", "registry.fedoraproject.org")
 export fedora_image := env("FEDORA_IMAGE", "fedora-minimal")
 
