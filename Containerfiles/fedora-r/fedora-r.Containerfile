@@ -19,6 +19,8 @@ ENV RHEL_LIKE="rhel9"
 RUN dnf install -y --setopt install_weak_deps=False \
   git \
   git-lfs \
+  gnupg2 \
+  openssh \
   sudo \
   curl \
   curl-devel \
@@ -38,7 +40,7 @@ ENV CRAN="https://p3m.dev/cran/__linux__/${RHEL_LIKE}/latest"
 RUN echo "options(repos = c(CRAN = '${CRAN}'), download.file.method = 'libcurl')" >> "${R_HOME}/etc/Rprofile.site"
 
 # Set the User-Agent for R
-RUN echo "options(HTTPUserAgent = sprintf('R/%s R (%s)', getRversion(), paste(getRversion(), R.version['platform'], R.version['arch'], R.version['os'])))" >> "${R_HOME}/etc/Rprofile.site" 
+RUN echo "options(HTTPUserAgent = sprintf('R/%s R (%s)', getRversion(), paste(getRversion(), R.version['platform'], R.version['arch'], R.version['os'])))" >> "${R_HOME}/etc/Rprofile.site"
 
 # Add site library
 RUN echo "R_LIBS=\${R_LIBS-'${R_HOME}/library'}" >> "${R_HOME}/etc/Renviron.site"
