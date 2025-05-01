@@ -3,4 +3,6 @@
 dnf install -y \
     fedpkg \
     copr-rpmbuild \
-    copr-cli
+    copr-cli \
+    fedora-packager \
+    koji
